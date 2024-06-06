@@ -1,8 +1,10 @@
 import re, csv, os.path, datetime
 
+#Параметры
 CACHE_SIZE = 3
 CSV_STORAGE = "./books.csv"
 
+#Валидация ISBN
 def check_input(input_string):
     pattern = r'^\d{9}[\dX]$'
     if re.match(pattern, input_string):
@@ -15,6 +17,7 @@ def check_input(input_string):
         return v[-1].upper() == check_summ
     else: return False
 
+#Фунция прямий вставки данных в csv-таблицу
 def dirrect_insert(fname: str, key: str, value: int):
     if not os.path.isfile(fname):
         with open(fname, 'w+'): ...
@@ -22,6 +25,7 @@ def dirrect_insert(fname: str, key: str, value: int):
         writer = csv.writer(f)
         writer.writerows([[key, value]])
 
+#Фунция прямого поиска данных в csv-таблице
 def dirrect_get(fname: str, key: str) -> int:
     if os.path.isfile(fname):
         with open(fname, 'r') as f:
@@ -31,6 +35,7 @@ def dirrect_get(fname: str, key: str) -> int:
             return -1
     else: return -1
 
+#Фунция прямого удаления данных в csv-таблице
 def dirrect_remove(fname: str, key: str) -> int:
     if os.path.isfile(fname):
         val = -1
@@ -50,7 +55,8 @@ def dirrect_remove(fname: str, key: str) -> int:
 
         return val
     else: return -1
-        
+
+#Класс кэширования
 class LRU:
     def __init__(self, N: int, csv_fname: str):
         self.N = N
@@ -67,9 +73,15 @@ class LRU:
         return f"[{self.csv}|{self.N}]\n{'\n'.join(groups)}"
     
     def _update_key(self, key: str):
+        '''
+        Обновление времени использования ключа
+        '''
         self.TimeList[key] = datetime.datetime.now()
 
     def _update_cache(self, key: str):
+        '''
+        Обновление кэша и очистка неиспользуемых данных
+        '''
          self._update_key(key)
          if len(self.HashTable) > self.N:
             oldest = min(self.TimeList, key=self.TimeList.get)
@@ -77,12 +89,18 @@ class LRU:
             if oldest in self.HashTable: self.HashTable.pop(oldest)
 
     def insert(self, key: str, value: int):
+        '''
+        Вставка по ключу
+        '''
         if self.get(key) != -1: return
         dirrect_insert(self.csv, key, value)
         self.HashTable[key] = value
         self._update_cache(key)
       
     def get(self, key: str) -> int:
+        '''
+        Поиск по ключу
+        '''
         v = self.HashTable.get(key, -1)
         if v == -1: v = dirrect_get(self.csv, key)
 
@@ -93,7 +111,9 @@ class LRU:
         return v
          
     def remove(self, key: str) -> int:
-        # if self.get(key) != -1: return -1
+        '''
+        Удаление по ключу
+        '''
         if key in self.TimeList: self.TimeList.pop(key)
         if key in self.HashTable: self.HashTable.pop(key)
         return dirrect_remove(self.csv, key)
@@ -106,22 +126,26 @@ def input_int(*args, **kwargs) -> int:
 
 books = LRU(CACHE_SIZE, CSV_STORAGE)
 
+#Основной цикл программы
 while True:
+    print(books) #Вывод кэша
+    
+    #Ввод и валидация ISBN
     v = input("value: ")
     if not v: exit()
     if not check_input(v): 
         print("Invalid value")
         continue
-    
-    print(books)
+
+    #Выбор действий
     print("1. add new")
     print("2. get value")
     print("3. remove book")
     print("0. exit")
 
     a = input_int("action: ")
-    if a == 0: exit()
-    elif a == 1:
+    if a == 0: exit() #Выход
+    elif a == 1: #Вставка
         print("ACTION ADD")
         while True:
             price = input_int("price: ")
@@ -134,7 +158,7 @@ while True:
         books.insert(v, price)
         print()
 
-    elif a == 2:
+    elif a == 2: #Поиск
         print("ACTION GET")
         price = books.get(v)
         if price == -1:
@@ -144,7 +168,7 @@ while True:
         print(f"{v} price is {price}")
         print()
 
-    elif a == 3:
+    elif a == 3: #Удаление
         print("ACTION REMOVE")
         price = books.remove(v)
         if price == -1:
