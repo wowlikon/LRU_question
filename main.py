@@ -1,4 +1,4 @@
-import re, time, csv, os.path, datetime
+import re, csv, os.path, datetime
 
 CSV_STORAGE = "./books.csv"
 
