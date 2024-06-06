@@ -1,5 +1,6 @@
 import re, csv, os.path, datetime
 
+CACHE_SIZE = 3
 CSV_STORAGE = "./books.csv"
 
 def check_input(input_string):
@@ -103,7 +104,7 @@ def input_int(*args, **kwargs) -> int:
         if v.isdigit(): return int(v)
         print("Invalid value")
 
-books = LRU(3, CSV_STORAGE)
+books = LRU(CACHE_SIZE, CSV_STORAGE)
 
 while True:
     v = input("value: ")
